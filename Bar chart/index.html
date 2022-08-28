@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Bar Chart</title>
+		<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+
+		<style>
+			svg {
+				color: white;
+			}
+			path {
+				stroke: white;
+			}
+			html,
+			body {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				height: 100%;
+				background-color: #222;
+			}
+		</style>
+	</head>
+	<body>
+		<script>
+			// Create svg drawing area
+			const svg = d3
+				.select("body")
+				.append("svg")
+				.style("width", "800px")
+				.style("height", "540px");
+
+			// Load data
+			const data = d3.csvParse(
+				`Year,NTD/USD,JPY/USD,USD/GBP,HKD/USD
+          2010,31.642,87.78,1.5461,7.7692
+          2011,29.464,79.81,1.6036,7.784
+          2012,29.614,79.79,1.5853,7.7564
+          2013,29.77,97.60,1.5645,7.756`,
+				function (d, i) {
+					return {
+						year: d["Year"],
+						values: [
+							{
+								name: "NTD",
+								value: d["NTD/USD"],
+							},
+							{
+								name: "JPY",
+								value: d["JPY/USD"],
+							},
+							{
+								name: "GBP",
+								value: d["USD/GBP"],
+							},
+							{
+								name: "HKD",
+								value: d["HKD/USD"],
+							},
+						],
+					};
+				}
+			);
+
+			//Create groups of every years
+			const groups = svg
+				.selectAll("g.bargroup")
+				.data(data)
+				.enter()
+				.append("g")
+				.attr("class", "bargroup")
+				.style("transform", (d, i) => `translate(${i * 200 + 40}px,500px)`);
+
+			// Create text of years
+			groups
+				.append("text")
+				.text((d) => d.year)
+				.attr("y", 30)
+				.style("fill", "white")
+				.style("font-size", "30px")
+				.style("font-weight", "bold");
+
+			// drawing bottom line
+			groups
+				.append("line")
+				.attr("x1", 0)
+				.attr("x2", 150)
+				.attr("y1", -20)
+				.attr("y2", -20)
+				.style("stroke", "#fff");
+
+			// Color control's scale
+			let colorify = d3.scaleOrdinal().range(d3.schemeCategory10);
+
+			// Numerical control's scale
+
+			let xScale = d3.scaleLinear().domain([0, 4]).range([0, 160]);
+
+			let yScale = d3.scaleLinear().domain([0, 40]).range([0, 120]);
+
+			// Draw Bar Chart
+			const bars = groups
+				.append("g")
+				.attr("class", "bars")
+				.style("transform", "translateY(-70px)")
+
+				.selectAll("rect.bar")
+				.data((d) => d.values)
+				.enter()
+				.append("rect")
+
+				.attr("class", "bar")
+				.attr("fill", (d, i) => colorify(i))
+
+				.attr("x", (d, i) => xScale(i))
+				.attr("width", 30)
+				.attr("height", 0)
+				.attr("data-name", (d) => d.name)
+
+				.transition()
+				.delay((d, i) => i * 500 + 500)
+				.duration(2000)
+				.ease(d3.easeElastic)
+				.attr("y", (d, i) => -yScale(d.value))
+				.attr("height", (d) => yScale(d.value));
+
+			// Currency text
+			const typeTexts = groups
+				.selectAll("g.label")
+				.data((d) => d.values)
+				.enter()
+				.append("g")
+
+				.append("text")
+				.style("fill", "white")
+				.style("opacity", 0)
+
+				.text((d) => d.name)
+
+				.attr("x", (d, i) => xScale(i))
+				.attr("y", -40)
+
+				.transition()
+				.delay((d, i) => i * 500)
+				.duration(1000)
+				.style("opacity", 0.6);
+
+			// y-axis
+			let axisGroup = svg
+				.append("g")
+				.attr("class", "axis")
+				.style("transform", "translateY(430px)")
+				.selectAll("line.axis")
+				.data(d3.range(6).map((d) => 20 * (d + 1)))
+				.enter();
+
+			axisGroup
+				.append("line")
+				.attr("class", "axis")
+				.attr("stroke", "white")
+				.attr("x1", 0)
+				.attr("x2", 960)
+				.attr("y1", (d, i) => -yScale(d))
+				.attr("y2", (d, i) => -yScale(d))
+				.attr("stroke-dasharray", "5 5")
+				.style("opacity", 0.3);
+
+			axisGroup
+				.append("text")
+				.text((d) => d)
+				.attr("x", 0)
+				.attr("y", (d, i) => -yScale(d) - 15)
+				.attr("fill", "white")
+				.style("opacity", 0.5);
+		</script>
+	</body>
+</html>

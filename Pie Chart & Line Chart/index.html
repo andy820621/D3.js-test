@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Pie Chart & Line Chart</title>
+		<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+
+		<style>
+			svg {
+				width: 960px;
+				height: 540px;
+				border: 2.4px solid #000;
+			}
+		</style>
+	</head>
+	<body>
+		<svg></svg>
+
+		<script>
+			const data = [
+				{
+					rank: 1,
+					city: "新北市",
+					cata: "直轄市",
+					count: "3,987,520",
+				},
+				{
+					rank: 2,
+					city: "臺中市",
+					cata: "直轄市",
+					count: "2,794,933",
+				},
+				{
+					rank: 3,
+					city: "高雄市",
+					cata: "直轄市",
+					count: "2,773,932",
+				},
+				{
+					rank: 4,
+					city: "臺北市",
+					cata: "直轄市",
+					count: "2,675,713",
+				},
+				{
+					rank: 5,
+					city: "桃園市",
+					cata: "直轄市",
+					count: "2,204,824",
+				},
+				{
+					rank: 6,
+					city: "臺南市",
+					cata: "直轄市",
+					count: "1,884,717",
+				},
+				{
+					rank: 7,
+					city: "彰化縣",
+					cata: "縣",
+					count: "1,279,276",
+				},
+				{
+					rank: 8,
+					city: "屏東縣",
+					cata: "縣",
+					count: "828,275",
+				},
+				{
+					rank: 9,
+					city: "雲林縣",
+					cata: "縣",
+					count: "688,717",
+				},
+				{
+					rank: 10,
+					city: "新竹縣",
+					cata: "縣",
+					count: "554,541",
+				},
+				{
+					rank: 11,
+					city: "苗栗縣",
+					cata: "縣",
+					count: "551,082",
+				},
+				{
+					rank: 12,
+					city: "嘉義縣",
+					cata: "縣",
+					count: "509,161",
+				},
+				{
+					rank: 13,
+					city: "南投縣",
+					cata: "縣",
+					count: "499,194",
+				},
+				{
+					rank: 14,
+					city: "宜蘭縣",
+					cata: "縣",
+					count: "456,006",
+				},
+				{
+					rank: 15,
+					city: "新竹市",
+					cata: "市",
+					count: "443,351",
+				},
+				{
+					rank: 16,
+					city: "基隆市",
+					cata: "市",
+					count: "370,795",
+				},
+				{
+					rank: 17,
+					city: "花蓮縣",
+					cata: "縣",
+					count: "328,749",
+				},
+				{
+					rank: 18,
+					city: "嘉義市",
+					cata: "市",
+					count: "268,951",
+				},
+				{
+					rank: 19,
+					city: "臺東縣",
+					cata: "縣",
+					count: "219,643",
+				},
+				{
+					rank: 20,
+					city: "金門縣",
+					cata: "縣",
+					count: "137,837",
+				},
+				{
+					rank: 21,
+					city: "澎湖縣",
+					cata: "縣",
+					count: "104,013",
+				},
+				{
+					rank: 22,
+					city: "連江縣",
+					cata: "縣",
+					count: "13,044",
+				},
+			];
+
+			data.forEach((item) => (item.count = +item.count.split(",").join("")));
+
+			// console.log(data);
+
+			const svg = d3.select("svg");
+
+			let scaleHeight = d3.scaleLinear().domain([0, 4000000]).range([0, 400]);
+			let scaleColor = d3
+				.scaleLinear()
+				.domain([0, 4000000])
+				.range(["rgba(40, 60, 226, 0.8)", "rgba(226, 81, 40, 0.8)"]);
+
+			let groups = svg.selectAll("g.city").data(data).enter().append("g");
+
+			// Add city
+			groups
+				.append("text")
+				.text((data) => data.city)
+				.attr("y", 520)
+				.attr("x", (d, i) => i * 100);
+
+			// Add Columns
+			// groups
+			// 	.append("rect")
+			// 	.attr("x", (d, i) => i * 100 + 10)
+			// 	.attr("y", (d) => 500 - scaleHeight(d.count))
+			// 	.attr("height", (d) => scaleHeight(d.count))
+			// 	.attr("width", 30)
+			// 	.attr("fill", (d) => scaleColor(d.count));
+
+			// Add Circles
+			groups
+				.append("circle")
+				.attr("cx", (d, i) => i * 100 + 20)
+				.attr("cy", 600)
+				.attr("r", 0)
+				.attr("fill", (d) => scaleColor(d.count))
+				.transition()
+				.duration(800)
+				.delay((d, i) => i * 140)
+				.attr("r", (d) => scaleHeight(d.count) / 10)
+				.attr("cy", (d) => 490 - scaleHeight(d.count));
+
+			// Add Number text
+			groups
+				.append("text")
+				.text((d) => d.count)
+				.attr("y", (d) => 490 - scaleHeight(d.count))
+				.attr("x", (d, i) => i * 100 + 10)
+				.style("font-size", ".8em");
+
+			// Add Line
+			let line = d3
+				.line()
+				.x((d, i) => i * 100)
+				.y((d, i) => 500 - d.count / 10000);
+			svg
+				.append("path")
+				.datum(data)
+				.attr("d", line)
+				.attr("fill", "none")
+				.attr("stroke", "black");
+		</script>
+	</body>
+</html>
